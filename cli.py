@@ -1,5 +1,7 @@
 import click
 
+import json
+
 from Client.s2mclient import S2MClient
 
 def list_obj(metadata):
@@ -29,21 +31,42 @@ def list_tree(ctx,l):
     return a
 
 @click.group()
-@click.argument('repository')
+@click.option('--repo','-r', help='Repository\'s url')
 @click.pass_context
-def main(ctx,repository):
+def main(ctx,repo):
     """
     Simple CLI for interact with a S2M Server
     """
+    if repo is None:
+        try:
+            conf = open("./.s2m-cli.config",'r')
+            conf = json.loads(conf.read())
+            repo = conf["REPO"]
+        except:
+            click.echo("Error: Missing repository's url")
+            return
+        
+
     ctx.ensure_object(dict)
-    ctx.obj['REPO'] = repository
+    ctx.obj['REPO'] = repo
+
+@main.command()
+@click.pass_context
+def save(ctx):
+    """
+    Save repository's url preference
+    """
+    conf = open("./.s2m-cli.config",'w')
+    conf.write(json.dumps({"REPO":ctx.obj['REPO']}))
 
 @main.command()
 @click.pass_context
 def ls(ctx):
     """List all buckets in a repository"""
     try:
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
 
         l,code = c.list()
 
@@ -67,7 +90,9 @@ def ls(ctx):
 def tree(ctx):
     """List all buckets and their objects in a repository"""
     try:
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
 
         l,code = c.list()
 
@@ -99,7 +124,9 @@ def get(ctx,bucket,obj,metadata):
     """Get information about a bucket or a object"""
     try:
         
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
     
         if metadata or obj is None:
             bucket_metadata,code = c.get_metadata(bucket,obj)
@@ -138,7 +165,9 @@ def get(ctx,bucket,obj,metadata):
 def add(ctx,bucket,obj,file,data):
     """Add a bucket or a object"""
     try:
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
 
         if obj is None:
             metadata,code = c.add_bucket(bucket)
@@ -170,7 +199,9 @@ def add(ctx,bucket,obj,file,data):
 def delete(ctx,bucket,obj):
     """Delete a bucket or a object"""
     try:
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
 
         b, code = c.delete(bucket)
 
@@ -199,7 +230,9 @@ def update(ctx,bucket,obj,file,data):
             click.echo("Update a bucket is not allowed")
             return
 
-        c = S2MClient(ctx.obj['REPO'])
+        repo = ctx.obj['REPO']
+        click.echo("Connecting to repository @ "+repo+"...")
+        c = S2MClient(repo)
 
         if file is not None:
             data = file.read()

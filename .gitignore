@@ -131,3 +131,4 @@ dmypy.json
 # S2M specific
 
 Server/data
+.s2m-cli.config
