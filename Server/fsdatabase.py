@@ -2,7 +2,9 @@ import os
 import json
 from shutil import rmtree
 
-class FSDatabase:
+from database import Database
+
+class FSDatabase(Database):
 
     def __init__(self, path):
 

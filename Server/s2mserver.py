@@ -10,6 +10,7 @@ from datetime import datetime
 import configparser
 
 from fsdatabase import FSDatabase
+from database import Database
 
 IP = "127.0.0.1"
 PORT = 5233
@@ -325,6 +326,12 @@ def config():
         DEBUG = parser[config]["DEBUG"]
 
 if __name__ == '__main__':
+    try:
+        assert isinstance(db, Database)
+    except:
+        print("Error: database isn't istance of Database")
+        exit()
+        
     config()
     print("S2M ONLINE @ "+IP+":"+str(PORT))
     app.run(host=IP,port=PORT,debug=DEBUG)
