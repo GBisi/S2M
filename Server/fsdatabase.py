@@ -77,6 +77,21 @@ class FSDatabase(Database):
         except:
             return None
 
+    def append(self, bucket, obj, data, extension = "txt"):
+        
+        try:
+            path = self._path+"/"+bucket+"/"+obj+"."+extension
+            if type(data) == bytes:
+                file = open(path,'ab')
+            else:
+                file = open(path,'a')
+
+            file.write(data)
+
+            return len(data)
+        except:
+            return None
+
     def delete(self, bucket, obj=None, extension="txt"):
 
         try:

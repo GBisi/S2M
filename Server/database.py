@@ -22,6 +22,10 @@ class Database(ABC):
     def store(self, bucket, obj, data, extension = "txt"):
         pass
 
+    @abstractmethod  
+    def append(self, bucket, obj, data, extension = "txt"):
+        pass
+
     @abstractmethod
     def delete(self, bucket, obj=None, extension="txt"):
         pass

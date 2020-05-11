@@ -122,6 +122,30 @@ def update_metadata(bucket,obj,size):
     else:
         return metadata
 
+def append_metadata(bucket,obj,size):
+    
+    now = str(datetime.now())
+
+    metadata = get_metadata(bucket,obj)
+    bucket_metadata = get_metadata(bucket)
+
+    if bucket_metadata is None:
+        return None
+
+    metadata["size"] += size
+    bucket_metadata["size"] += size
+
+    bucket_metadata["last_update"] = now
+    metadata["last_update"] = now
+
+    if db.store(bucket,"metadata",json.dumps(bucket_metadata),"metadata") is None:
+        return None
+
+    if db.store(bucket,obj,json.dumps(metadata),"metadata") is None:
+        return None
+    else:
+        return metadata
+
 @app.route('/', methods=['GET'])
 def get_all_buckets():
     debug("GET ALL")
@@ -271,6 +295,36 @@ def update_obj(bucket,obj):
         abort(500)
 
     metadata = update_metadata(bucket,obj,size)
+
+    return jsonify(metadata),200
+
+@app.route('/<bucket>/<obj>', methods=['PATCH'])
+def append_obj(bucket,obj):
+
+    debug("PATCH "+bucket+"/"+obj)
+
+    if not db.has(bucket):
+        debug("PATCH "+bucket+": not exist")
+        abort(404)
+
+    if obj == "metadata":
+        abort(403)
+
+    if not db.has(bucket,obj):
+        debug("PATCH "+bucket+"/"+obj+": not exist")
+        abort(404)
+
+    data = request.data
+
+    if data is None:
+        data = ""
+
+    size = db.append(bucket,obj,data)
+
+    if size is None:
+        abort(500)
+
+    metadata = append_metadata(bucket,obj,size)
 
     return jsonify(metadata),200
 
